@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import * as faceapi from 'face-api.js';
 import { API_BASE_URL } from '../config/api';
 
 const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, testId, resultId }) => {
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const [violations, setViolations] = useState(0);
-  const [modelsLoaded, setModelsLoaded] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [audioContext, setAudioContext] = useState(null);
   const [lastViolationType, setLastViolationType] = useState('');
@@ -35,25 +34,40 @@ const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, t
     }
   };
 
-  // Load face-api models
-  useEffect(() => {
-    const loadModels = async () => {
-      try {
-        const MODEL_URL = '/models'; // Place models in public/models folder
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-        setModelsLoaded(true);
-        console.log('Face detection models loaded');
-      } catch (error) {
-        console.error('Error loading models:', error);
-        // Continue without face detection if models fail to load
-        setModelsLoaded(false);
+  // Simple face detection using canvas
+  const detectFace = () => {
+    if (!videoRef.current || !canvasRef.current) return false;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    // Simple skin tone detection as a proxy for face detection
+    let skinPixels = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      
+      // Skin tone detection (simplified)
+      if (r > 95 && g > 40 && b > 20 && 
+          Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+          Math.abs(r - g) > 15 && r > g && r > b) {
+        skinPixels++;
       }
-    };
-
-    loadModels();
-  }, []);
+    }
+    
+    // If skin pixels are between 5-50% of frame, assume face is visible
+    const skinRatio = skinPixels / (canvas.width * canvas.height);
+    return skinRatio > 0.05 && skinRatio < 0.50;
+  };
 
   // Start camera and audio monitoring
   useEffect(() => {
@@ -107,25 +121,19 @@ const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, t
 
   // Face detection and violation checking
   useEffect(() => {
-    if (!isActive || !cameraActive || !modelsLoaded) return;
+    if (!isActive || !cameraActive) return;
 
     const checkForViolations = async () => {
       if (!videoRef.current) return;
 
       try {
-        // Face detection
-        const detections = await faceapi.detectAllFaces(
-          videoRef.current,
-          new faceapi.TinyFaceDetectorOptions()
-        );
-
         let violationType = null;
 
-        // Check for face violations
-        if (detections.length === 0) {
+        // Check for face violations using simple detection
+        const hasFace = detectFace();
+        if (!hasFace) {
           violationType = 'no_face';
-        } else if (detections.length > 1) {
-          violationType = 'multiple_faces';
+          console.log('⚠️ No face detected');
         }
 
         // Check for loud audio
@@ -138,6 +146,7 @@ const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, t
           // If average volume is above threshold (adjust as needed)
           if (average > 100) {
             violationType = 'loud_audio';
+            console.log('⚠️ Loud audio detected:', average);
           }
         }
 
@@ -176,7 +185,7 @@ const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, t
         clearInterval(violationCheckInterval.current);
       }
     };
-  }, [isActive, cameraActive, modelsLoaded, onViolation, maxViolations]);
+  }, [isActive, cameraActive, onViolation, maxViolations, testId, resultId]);
 
   if (!isActive) return null;
 
@@ -193,6 +202,7 @@ const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, t
             muted
             className="w-full h-48 bg-black rounded"
           />
+          <canvas ref={canvasRef} className="hidden" />
           <div className="absolute top-2 left-2">
             <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
               cameraActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
