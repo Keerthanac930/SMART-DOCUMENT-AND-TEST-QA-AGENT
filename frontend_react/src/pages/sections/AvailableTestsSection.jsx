@@ -82,7 +82,7 @@ const AvailableTestsSection = () => {
               transition={{ delay: index * 0.1 }}
               whileHover={{ y: -5 }}
               className="glass-card p-6 cursor-pointer group hover:shadow-2xl transition-all"
-              onClick={() => navigate(`/test/${test.id}`)}
+              onClick={() => navigate(`/tests/${test.id}`)}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -105,7 +105,7 @@ const AvailableTestsSection = () => {
               <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex items-center space-x-2">
                   <FileQuestion className="w-4 h-4" />
-                  <span>{test.questions?.length || 0} questions</span>
+                  <span>{test.question_count || 0} questions</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4" />

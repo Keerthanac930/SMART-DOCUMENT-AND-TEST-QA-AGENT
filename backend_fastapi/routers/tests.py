@@ -2,7 +2,7 @@
 Tests router for test-related operations
 """
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List
 from database import get_db
 from models import Test, Question, Result, User
@@ -16,9 +16,10 @@ async def get_all_available_tests(
     db: Session = Depends(get_db)
 ):
     """Get all active tests for students"""
-    tests = db.query(Test).filter(Test.is_active == True).all()
+    # Use joinedload to eagerly load questions to get accurate count
+    tests = db.query(Test).options(joinedload(Test.questions)).filter(Test.is_active == True).all()
     
-    # Return simplified response without nested questions
+    # Return simplified response with accurate question count
     return [{
         "id": test.id,
         "test_name": test.test_name,
@@ -36,7 +37,7 @@ async def get_test_details(
     db: Session = Depends(get_db)
 ):
     """Get test details"""
-    test = db.query(Test).filter(
+    test = db.query(Test).options(joinedload(Test.questions)).filter(
         Test.id == test_id,
         Test.is_active == True
     ).first()
@@ -79,12 +80,26 @@ async def get_test_questions(
     
     questions = db.query(Question).filter(Question.test_id == test_id).all()
     
-    # For regular users, hide correct answers
-    if current_user.role != "admin":
+    # For regular users, hide correct answers but keep structure
+    user_role = current_user.role.upper() if isinstance(current_user.role, str) else current_user.role.value.upper()
+    if user_role != "ADMIN":
         for question in questions:
             question.correct_answer = "***"  # Hide correct answer
     
     return questions
+
+@router.get("/{test_id}/questions/count")
+async def get_question_count(
+    test_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get question count for a test"""
+    count = db.query(Question).filter(Question.test_id == test_id).count()
+    
+    return {
+        "test_id": test_id,
+        "question_count": count
+    }
 
 @router.post("/submit")
 async def submit_test(
