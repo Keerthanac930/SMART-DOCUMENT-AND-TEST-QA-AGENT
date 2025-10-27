@@ -91,14 +91,14 @@ const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, t
         const analyser = audioCtx.createAnalyser();
         const microphone = audioCtx.createMediaStreamSource(stream);
         
-        analyser.smoothingTimeConstant = 0.8;
-        analyser.fftSize = 1024;
+        analyser.smoothingTimeConstant = 0.3; // More responsive
+        analyser.fftSize = 2048; // Higher resolution
         
         microphone.connect(analyser);
         setAudioContext(audioCtx);
         audioAnalyserRef.current = analyser;
 
-        console.log('Camera and microphone active');
+        console.log('✅ Camera and microphone active');
       } catch (error) {
         console.error('Error accessing media devices:', error);
         alert('Please enable camera and microphone access to continue the test.');
@@ -142,11 +142,16 @@ const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, t
           audioAnalyserRef.current.getByteFrequencyData(dataArray);
           
           const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+          const max = Math.max(...dataArray);
           
-          // If average volume is above threshold (adjust as needed)
-          if (average > 100) {
+          // Lower threshold for better sensitivity (30 for normal voice, 60 for loud)
+          // Log to console for debugging
+          console.log('🔊 Audio level - Average:', Math.round(average), 'Max:', Math.round(max));
+          
+          // If average volume is above threshold (speaking loudly)
+          if (average > 40) { // Lowered threshold for better detection
             violationType = 'loud_audio';
-            console.log('⚠️ Loud audio detected:', average);
+            console.log('⚠️ LOUD AUDIO VIOLATION detected! Average:', Math.round(average), 'Max:', Math.round(max));
           }
         }
 
@@ -177,8 +182,8 @@ const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, t
       }
     };
 
-    // Check for violations every 3 seconds
-    violationCheckInterval.current = setInterval(checkForViolations, 3000);
+    // Check for violations every 1.5 seconds for more real-time detection
+    violationCheckInterval.current = setInterval(checkForViolations, 1500);
 
     return () => {
       if (violationCheckInterval.current) {
