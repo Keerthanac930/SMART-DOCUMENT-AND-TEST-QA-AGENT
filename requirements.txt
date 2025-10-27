@@ -1,0 +1,51 @@
+# Core dependencies
+streamlit>=1.28.0
+flask>=2.3.0
+flask-cors>=4.0.0
+python-dotenv>=1.0.0
+
+# AI and ML
+google-generativeai>=0.3.0
+sentence-transformers>=2.2.0
+faiss-cpu>=1.9.0
+numpy>=1.26.4,<3.0
+pandas>=2.0.0
+Pillow>=10.0.0
+pytesseract>=0.3.10
+pdf2image>=1.16.3
+
+# Document processing
+PyPDF2>=3.0.0
+python-docx>=0.8.11
+openpyxl>=3.1.0
+python-pptx>=0.6.21
+
+# Image processing and OCR
+opencv-python==4.8.1.78
+easyocr>=1.7.0
+
+# Audio processing (client uses web APIs; keep libs minimal)
+speechrecognition>=3.10.0
+pydub>=0.25.1
+librosa>=0.10.1
+soundfile>=0.12.1
+
+# Google Drive integration
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.1.1
+google-api-python-client>=2.100.0
+
+# Web and mobile support
+requests>=2.31.0
+urllib3>=2.0.0
+werkzeug>=2.3.0
+
+# Additional utilities
+python-magic>=0.4.27
+chardet>=5.2.0
+tqdm
+streamlit-webrtc>=0.63.0
+av>=10.0.0
+
+

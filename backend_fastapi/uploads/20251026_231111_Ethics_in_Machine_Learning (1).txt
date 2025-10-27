@@ -1,0 +1,12 @@
+Ethics in Machine Learning
+
+Ethics in machine learning is one of the most important aspects of AI development.
+Machine learning models can unintentionally learn bias from data, resulting in unfair or harmful outcomes.
+
+Developers must ensure:
+- Transparency: Explain how models make decisions.
+- Fairness: Avoid bias in training datasets.
+- Privacy: Protect user data from misuse.
+- Accountability: Clearly define who is responsible when models fail.
+
+A well-governed ML system balances innovation with responsibility.

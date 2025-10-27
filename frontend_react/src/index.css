@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', 'Poppins', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark;
+  }
+}
+
+@layer components {
+  /* Glassmorphism card */
+  .glass-card {
+    @apply bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/50 shadow-glass dark:shadow-glass-dark;
+  }
+  
+  /* Glassmorphism input */
+  .glass-input {
+    @apply w-full px-4 py-3 bg-white/50 dark:bg-gray-900/50 backdrop-blur-lg border border-white/20 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500;
+  }
+  
+  /* Gradient buttons */
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:scale-105;
+  }
+  
+  .btn-accent {
+    @apply bg-gradient-to-r from-accent to-accent-700 hover:from-accent-600 hover:to-accent-800 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:scale-105;
+  }
+  
+  .btn-secondary {
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg hover:bg-white dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 font-medium py-3 px-6 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-400 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg;
+  }
+  
+  /* Sidebar item */
+  .sidebar-item {
+    @apply flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-xl transition-all duration-200 cursor-pointer backdrop-blur-sm;
+  }
+  
+  .sidebar-item.active {
+    @apply bg-gradient-to-r from-primary/20 to-accent/20 dark:from-primary/30 dark:to-accent/30 text-primary-700 dark:text-primary-300 shadow-md;
+  }
+  
+  /* Stat card */
+  .stat-card {
+    @apply glass-card p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-500;
+}
+
+/* Loading animations */
+.loading-spinner {
+  @apply animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600;
+}
+
+.loading-dots {
+  @apply inline-flex space-x-1;
+}
+
+.loading-dots div {
+  @apply w-2 h-2 bg-primary-600 rounded-full animate-bounce;
+}
+
+.loading-dots div:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.loading-dots div:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+/* Neumorphism effects */
+.neumorphism {
+  @apply shadow-lg;
+  box-shadow: 
+    20px 20px 60px #d1d9e6,
+    -20px -20px 60px #ffffff;
+}
+
+.neumorphism-inset {
+  @apply shadow-inner;
+  box-shadow: 
+    inset 20px 20px 60px #d1d9e6,
+    inset -20px -20px 60px #ffffff;
+}
+
+/* Dark mode neumorphism */
+.dark .neumorphism {
+  box-shadow: 
+    20px 20px 60px #1a1a1a,
+    -20px -20px 60px #2d2d2d;
+}
+
+.dark .neumorphism-inset {
+  box-shadow: 
+    inset 20px 20px 60px #1a1a1a,
+    inset -20px -20px 60px #2d2d2d;
+}
