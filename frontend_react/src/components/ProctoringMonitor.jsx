@@ -75,30 +75,50 @@ const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, t
 
     const startMonitoring = async () => {
       try {
-        // Request camera and microphone access
+        // Request camera and microphone access with proper audio constraints
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
+          video: { width: 640, height: 480 },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            sampleRate: 44100
+          }
         });
+
+        console.log('🎤 Media stream obtained:', stream.getAudioTracks().length, 'audio tracks');
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           setCameraActive(true);
         }
 
-        // Setup audio monitoring
+        // Setup audio monitoring with proper audio track
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const analyser = audioCtx.createAnalyser();
         const microphone = audioCtx.createMediaStreamSource(stream);
         
         analyser.smoothingTimeConstant = 0.3; // More responsive
         analyser.fftSize = 2048; // Higher resolution
+        analyser.minDecibels = -90;
+        analyser.maxDecibels = -10;
         
         microphone.connect(analyser);
         setAudioContext(audioCtx);
         audioAnalyserRef.current = analyser;
 
         console.log('✅ Camera and microphone active');
+        console.log('🎤 Audio context created:', audioCtx.state);
+        
+        // Test audio levels immediately
+        setTimeout(() => {
+          if (audioAnalyserRef.current) {
+            const testArray = new Uint8Array(audioAnalyserRef.current.frequencyBinCount);
+            audioAnalyserRef.current.getByteFrequencyData(testArray);
+            const testAvg = testArray.reduce((a, b) => a + b) / testArray.length;
+            console.log('🧪 Initial audio test - Average:', Math.round(testAvg));
+          }
+        }, 1000);
       } catch (error) {
         console.error('Error accessing media devices:', error);
         alert('Please enable camera and microphone access to continue the test.');
@@ -143,16 +163,19 @@ const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, t
           
           const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
           const max = Math.max(...dataArray);
+          const sum = dataArray.reduce((a, b) => a + b, 0);
           
-          // Lower threshold for better sensitivity (30 for normal voice, 60 for loud)
-          // Log to console for debugging
-          console.log('🔊 Audio level - Average:', Math.round(average), 'Max:', Math.round(max));
+          // Lower threshold for better sensitivity
+          // Log to console every check for debugging
+          console.log('🔊 Audio check - Avg:', Math.round(average), 'Max:', Math.round(max), 'Sum:', sum);
           
-          // If average volume is above threshold (speaking loudly)
-          if (average > 40) { // Lowered threshold for better detection
+          // Detect any significant audio - very low threshold
+          if (max > 5 || average > 10) { // Very sensitive threshold
             violationType = 'loud_audio';
-            console.log('⚠️ LOUD AUDIO VIOLATION detected! Average:', Math.round(average), 'Max:', Math.round(max));
+            console.log('⚠️ LOUD AUDIO VIOLATION! Avg:', Math.round(average), 'Max:', Math.round(max));
           }
+        } else {
+          console.log('❌ Audio analyser not available');
         }
 
         // Log violation
@@ -204,7 +227,8 @@ const ProctoringMonitor = ({ onViolation, maxViolations = 10, isActive = true, t
           <video
             ref={videoRef}
             autoPlay
-            muted
+            muted={false}
+            playsInline
             className="w-full h-48 bg-black rounded"
           />
           <canvas ref={canvasRef} className="hidden" />
